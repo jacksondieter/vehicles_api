@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -92,10 +94,19 @@ public class CarControllerTest {
     @Test
     public void listCars() throws Exception {
         /**
-         * TODO: Add a test to check that the `get` method works by calling
+         * Add a test to check that the `get` method works by calling
          *   the whole list of vehicles. This should utilize the car from `getCar()`
          *   below (the vehicle will be the first in the list).
          */
+        Car car = getCar();
+        car.setId(1L);
+
+        mvc.perform(
+                        get(new URI("/cars")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("_embedded.carList").isArray())
+                .andExpect(jsonPath("_embedded.carList",hasSize(1)))
+                .andExpect(jsonPath("_embedded.carList[0].id").value(car.getId()));
 
     }
 
@@ -106,9 +117,16 @@ public class CarControllerTest {
     @Test
     public void findCar() throws Exception {
         /**
-         * TODO: Add a test to check that the `get` method works by calling
+         * Add a test to check that the `get` method works by calling
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
+        Car car = getCar();
+        car.setId(1L);
+        mvc.perform(
+                        get(new URI("/cars/1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(car.getId()))
+                .andExpect(jsonPath("createdAt").value(car.getCreatedAt()));
     }
 
     /**
@@ -118,10 +136,14 @@ public class CarControllerTest {
     @Test
     public void deleteCar() throws Exception {
         /**
-         * TODO: Add a test to check whether a vehicle is appropriately deleted
+         * Add a test to check whether a vehicle is appropriately deleted
          *   when the `delete` method is called from the Car Controller. This
          *   should utilize the car from `getCar()` below.
          */
+        mvc.perform(
+                        delete(new URI("/cars/1")))
+                .andExpect(status().isNoContent());
+        verify(carService, times(1)).delete(1L);
     }
 
     /**
